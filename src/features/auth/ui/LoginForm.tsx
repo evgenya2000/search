@@ -6,6 +6,8 @@ import { Button, Input } from '@/shared/ui';
 import { useAuthStore } from '@/entities/session';
 import { useI18n } from '@/shared/lib/i18n';
 import { createLoginSchema, type LoginFormData } from '../model/loginSchema';
+import { useNavigate } from 'react-router-dom';
+import { routes } from '@/shared/config/routes';
 
 const Form = styled.form`
   display: flex;
@@ -37,6 +39,7 @@ const Subtitle = styled.p`
 export function LoginForm() {
   const login = useAuthStore((state) => state.login);
   const { t } = useI18n();
+  const navigate = useNavigate();
 
   const schema = useMemo(() => createLoginSchema(t), [t]);
 
@@ -53,6 +56,7 @@ export function LoginForm() {
     await new Promise((resolve) => setTimeout(resolve, 600));
     console.log('Login attempt:', data.email);
     login();
+    navigate(routes.chat, { replace: true });  
   };
 
   return (

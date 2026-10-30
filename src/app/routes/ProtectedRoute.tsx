@@ -8,11 +8,9 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const isAuth = useAuthStore((state) => state.isAuth);
-
-  if (!isAuth) {
-    return <Navigate to={routes.login} replace />;
-  }
+  // TODO: временный байпас — вернуть проверку isAuth после отладки
+  // const isAuth = useAuthStore((state) => state.isAuth);
+  // if (!isAuth) return <Navigate to={routes.login} replace />;
 
   return <>{children}</>;
 }
