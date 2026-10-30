@@ -75,7 +75,7 @@ export const translations: Record<Language, TranslationTree> = {
   },
   ru: {
     app: {
-      name: 'LandSearch',
+      name: 'Поиск участков',
     },
     login: {
       title: 'С возвращением',

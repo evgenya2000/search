@@ -45,7 +45,7 @@ const StyledButton = styled.button<{ $variant: ButtonVariant; $size: ButtonSize 
       case 'primary':
         return `
           background-color: ${theme.colors.primary};
-          color: ${theme.colors.text};
+          color: ${theme.colors.textWhite};
           box-shadow: ${theme.shadows.sm};
           &:hover:not(:disabled) {
             background-color: ${theme.colors.primaryHover};
@@ -55,7 +55,7 @@ const StyledButton = styled.button<{ $variant: ButtonVariant; $size: ButtonSize 
       case 'secondary':
         return `
           background-color: ${theme.colors.surface};
-          color: ${theme.colors.text};
+          color: ${theme.colors.textWhite};
           border: 1px solid ${theme.colors.border};
           &:hover:not(:disabled) {
             background-color: ${theme.colors.background};

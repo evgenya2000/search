@@ -10,6 +10,7 @@ export const theme = {
     background: 'var(--color-background)',
     surface: 'var(--color-surface)',
     text: 'var(--color-text)',
+    textWhite: 'var(--color-text-white)',
     muted: 'var(--color-muted)',
     border: 'var(--color-border)',
     sidebar: 'var(--color-sidebar)',

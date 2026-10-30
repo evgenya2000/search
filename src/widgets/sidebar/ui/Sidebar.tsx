@@ -279,9 +279,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       >
         <Header $isCollapsed={isCollapsed}>
           <Logo $isCollapsed={isCollapsed}>
-            <IconBox $size={22}>
-              <MessageSquare />
-            </IconBox>
             {t('app.name')}
           </Logo>
           <ToggleButton
@@ -294,14 +291,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <PanelLeftClose size={18} />
             </ToggleIcon>
           </ToggleButton>
-          <CloseButton
-            variant="ghost"
-            size="sm"
-            onClick={closeMobile}
-            aria-label={t('sidebar.closeMenu')}
-          >
-            <X size={18} />
-          </CloseButton>
         </Header>
         <Nav>
           <NavItem $isCollapsed={isCollapsed} onClick={closeMobile}>
