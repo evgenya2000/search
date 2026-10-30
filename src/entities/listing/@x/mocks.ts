@@ -1,5 +1,5 @@
 import type { Listing } from '../model/types';
-import homeImage from '@/shared/assets/home.png';
+import homeImage from '@/shared/assets/home.webp';
 
 /**
  * Технические mock-данные для сущности listing.

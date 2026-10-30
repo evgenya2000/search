@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { LogOut, Menu, MessageSquare, PanelLeftClose, X } from 'lucide-react';
+import { LogOut, Menu, MessageSquare, PanelLeftClose } from 'lucide-react';
 import { Button, LanguageSelector } from '@/shared/ui';
 import { useAuthStore } from '@/entities/session';
 import { useI18n } from '@/shared/lib/i18n';
@@ -112,15 +112,6 @@ const ToggleButton = styled(Button)`
 
   @media (max-width: 768px) {
     display: none;
-  }
-`;
-
-const CloseButton = styled(Button)`
-  display: none;
-  flex-shrink: 0;
-
-  @media (max-width: 768px) {
-    display: inline-flex;
   }
 `;
 
