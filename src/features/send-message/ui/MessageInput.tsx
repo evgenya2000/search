@@ -1,13 +1,17 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import styled from 'styled-components';
 import { Send } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { useI18n } from '@/shared/lib';
-import { useSendMessage } from '../model/useSendMessage';
+
+interface MessageInputProps {
+  onSend: (text: string) => Promise<void>;
+  isLoading: boolean;
+}
 
 const Form = styled.form`
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.75rem;
   padding: 1rem;
   background-color: ${({ theme }) => theme.colors.surface};
@@ -16,21 +20,18 @@ const Form = styled.form`
 
 const TextArea = styled.textarea`
   flex: 1;
-  min-height: 3rem;
-  max-height: 8rem;
+  min-height: 8rem;
+  max-height: 18rem;
   padding: 0.75rem 1rem;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.input};
   color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   resize: vertical;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
 
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.muted};
-  }
-
+  &::placeholder { color: ${({ theme }) => theme.colors.muted}; }
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
@@ -38,33 +39,47 @@ const TextArea = styled.textarea`
   }
 `;
 
-export function MessageInput() {
+export function MessageInput({ onSend, isLoading }: MessageInputProps) {
   const { t } = useI18n();
   const [text, setText] = useState('');
-  const { sendMessage } = useSendMessage();
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!text.trim()) return;
-    await sendMessage(text);
+  const submitText = async () => {
+    if (!text.trim() || isLoading) return;
+    const submittedText = text;
     setText('');
+    await onSend(submittedText);
+  };
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    void submitText();
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      void submitText();
+    }
   };
 
   return (
     <Form onSubmit={handleSubmit}>
       <TextArea
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(event) => setText(event.target.value)}
         placeholder={t('chat.placeholder')}
-        rows={1}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit(e);
-          }
-        }}
+        aria-label={t('chat.placeholder')}
+        rows={6}
+        onKeyDown={handleKeyDown}
+        disabled={isLoading}
       />
-      <Button type="submit" size="lg" aria-label={t('chat.send')}>
+      <Button
+        type="submit"
+        size="lg"
+        aria-label={t('chat.send')}
+        disabled={isLoading || !text.trim()}
+        isLoading={isLoading}
+      >
         <Send size={20} />
       </Button>
     </Form>

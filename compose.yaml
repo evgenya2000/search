@@ -1,0 +1,30 @@
+services:
+  land-search-bff:
+    build:
+      context: ../land-search-bff
+    environment:
+      PORT: 3000
+      LAND_INDEX_URL: http://api:8002
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - default
+      - land-index
+
+  frontend:
+    build:
+      context: .
+    environment:
+      API_UPSTREAM: http://land-search-bff:3000
+    depends_on:
+      - land-search-bff
+    ports:
+      - "127.0.0.1:8080:80"
+    networks:
+      - default
+
+networks:
+  default: {}
+  land-index:
+    external: true
+    name: land-index_default

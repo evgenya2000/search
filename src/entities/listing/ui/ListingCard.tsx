@@ -13,7 +13,8 @@ interface ListingCardProps {
 const Card = styled(Link)`
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  gap: 0.75rem;
+  padding: 1rem;
   background-color: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -23,24 +24,15 @@ const Card = styled(Link)`
   color: inherit;
 
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: ${({ theme }) => theme.shadows.xl};
   }
-`;
-
-const Image = styled.img`
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  background-color: ${({ theme }) => theme.colors.input};
 `;
 
 const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1rem;
-  flex: 1;
 `;
 
 const Title = styled.h3`
@@ -51,18 +43,24 @@ const Title = styled.h3`
 `;
 
 const Description = styled.p`
+  margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.muted};
-  line-height: 1.5;
-  flex: 1;
 `;
 
 const MetaRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   flex-wrap: wrap;
+`;
+
+const Meta = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.muted};
 `;
 
 const Price = styled.span`
@@ -71,73 +69,58 @@ const Price = styled.span`
   color: ${({ theme }) => theme.colors.primary};
 `;
 
-const Area = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.muted};
+const Matches = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
 `;
 
-const Location = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.muted};
-`;
-
-const StatusBadge = styled.span<{ $status: Listing['status'] }>`
-  padding: 0.25rem 0.625rem;
+const Match = styled.span`
+  padding: 0.25rem 0.5rem;
   border-radius: ${({ theme }) => theme.radii.xl};
+  background: ${({ theme }) => theme.colors.input};
+  color: ${({ theme }) => theme.colors.muted};
   font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: 500;
-  text-transform: capitalize;
-  background-color: ${({ $status, theme }) => {
-    switch ($status) {
-      case 'available':
-        return `${theme.colors.success}1a`;
-      case 'reserved':
-        return `${theme.colors.warning}1a`;
-      case 'sold':
-        return `${theme.colors.error}1a`;
-    }
-  }};
-  color: ${({ $status, theme }) => {
-    switch ($status) {
-      case 'available':
-        return theme.colors.success;
-      case 'reserved':
-        return theme.colors.warning;
-      case 'sold':
-        return theme.colors.error;
-    }
-  }};
 `;
+
+function formatArea(value: number, language: string): string {
+  return new Intl.NumberFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
+    maximumFractionDigits: 1,
+  }).format(value);
+}
 
 export function ListingCard({ listing, className }: ListingCardProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const houseLabel = listing.withHouse === null
+    ? t('listings.houseUnknown')
+    : listing.withHouse
+      ? t('listings.withHouse')
+      : t('listings.withoutHouse');
 
   return (
-    <Card to={routes.listing.replace(':id', listing.id)} className={cn(className)}>
-      <Image src={listing.imageUrl} alt={listing.title} loading="lazy" />
+    <Card to={routes.listing.replace(':id', String(listing.id))} className={cn(className)}>
       <Content>
         <Title>{listing.title}</Title>
-        <Description>{listing.description}</Description>
-        <Location>
-          <MapPin size={14} aria-hidden />
-          {listing.location}
-        </Location>
+        <Description>{houseLabel}</Description>
+        <Meta><MapPin size={14} aria-hidden />{listing.location}</Meta>
         <MetaRow>
-          <Price>{formatPrice(listing.price)}</Price>
-          <Area>
-            <Maximize size={14} aria-hidden />
-            {t('listings.area', { area: String(listing.area) })}
-          </Area>
-          <StatusBadge $status={listing.status}>
-            {t(`listings.status.${listing.status}`)}
-          </StatusBadge>
+          <Price>{listing.priceRub === null ? t('listings.priceUnknown') : formatPrice(listing.priceRub)}</Price>
+          {listing.areaAres !== null && (
+            <Meta>
+              <Maximize size={14} aria-hidden />
+              {t('listings.area', { area: formatArea(listing.areaAres, language) })}
+            </Meta>
+          )}
         </MetaRow>
+        {listing.matchedObjects.length > 0 && (
+          <Matches aria-label={t('listings.matches', { count: String(listing.matchedObjectsTotal) })}>
+            {listing.matchedObjects.slice(0, 4).map((object, index) => (
+              <Match key={object.category + '-' + object.name + '-' + index}>
+                {object.name ?? t('listingDetail.categories.' + object.category)}
+              </Match>
+            ))}
+          </Matches>
+        )}
       </Content>
     </Card>
   );
