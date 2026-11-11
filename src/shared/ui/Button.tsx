@@ -25,14 +25,7 @@ const StyledButton = styled.button<{ $variant: ButtonVariant; $size: ButtonSize 
   font-weight: 500;
   border-radius: ${({ theme }) => theme.radii.md};
   transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
+  cursor: pointer;
 
   &:disabled {
     opacity: 0.6;

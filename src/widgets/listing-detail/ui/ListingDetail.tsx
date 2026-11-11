@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Maximize, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ChevronDown, MapPin, Maximize, ExternalLink } from 'lucide-react';
 import { Button, Spinner } from '@/shared/ui';
 import { formatPrice, useI18n } from '@/shared/lib';
 import { routes } from '@/shared/config';
@@ -97,6 +98,17 @@ const OriginalLink = styled.a`
   color: ${({ theme }) => theme.colors.primary};
   font-weight: 600;
 `;
+const ShowMoreButton = styled(Button)`
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+const ChevronIcon = styled(ChevronDown)<{ $expanded: boolean }>`
+  transition: transform 0.2s ease;
+  transform: rotate(${({ $expanded }) => ($expanded ? 180 : 0)}deg);
+  margin: 2px -5px 0 0;
+`;
 const EmptyState = styled.div`
   display: flex;
   flex-direction: column;
@@ -108,6 +120,8 @@ const EmptyState = styled.div`
   text-align: center;
   color: ${({ theme }) => theme.colors.muted};
 `;
+
+const NEARBY_PREVIEW_COUNT = 2;
 
 function nearbyName(object: NearbyObject, t: (key: string) => string): string {
   return object.name ?? t('listingDetail.categories.' + object.category);
@@ -124,6 +138,7 @@ export function ListingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { listing, isLoading, error } = useListing(id);
+  const [nearbyExpanded, setNearbyExpanded] = useState(false);
 
   if (isLoading) return <EmptyState><Spinner label={t('listingDetail.loading')} /><span>{t('listingDetail.loading')}</span></EmptyState>;
 
@@ -150,10 +165,16 @@ export function ListingDetail() {
     ? t('listings.houseUnknown')
     : listing.withHouse ? t('listings.withHouse') : t('listings.withoutHouse');
 
+  const hasNearby = listing.nearbyObjects.length > 0;
+  const hasHiddenNearby = listing.nearbyObjects.length > NEARBY_PREVIEW_COUNT;
+  const visibleNearby = nearbyExpanded
+    ? listing.nearbyObjects
+    : listing.nearbyObjects.slice(0, NEARBY_PREVIEW_COUNT);
+
   return (
     <Page>
       <Header>
-        <BackButton variant="secondary" onClick={() => navigate(-1)} aria-label={t('listingDetail.back')}>
+        <BackButton onClick={() => navigate(-1)} aria-label={t('listingDetail.back')}>
           <ArrowLeft size={20} aria-hidden />
         </BackButton>
         <HeaderTitle>{listing.title}</HeaderTitle>
@@ -174,25 +195,39 @@ export function ListingDetail() {
             <Description>{listing.description}</Description>
           </Section>
         )}
-        <Section>
-          <SectionTitle>{t('listingDetail.nearby')}</SectionTitle>
-          {listing.nearbyObjects.length === 0 ? (
-            <Description>{t('listingDetail.noNearby')}</Description>
-          ) : listing.nearbyObjects.map((object, index) => (
-            <NearbyCard key={object.category + '-' + object.name + '-' + index}>
-              <strong>{nearbyName(object, t)}</strong>
-              {object.routes.map((route, routeIndex) => (
-                <Description key={route.mode + '-' + routeIndex}>
-                  {t('listingDetail.modes.' + route.mode)} · {routeSummary(route, t)}
-                </Description>
-              ))}
-            </NearbyCard>
-          ))}
-        </Section>
         <OriginalLink href={listing.link} target="_blank" rel="noreferrer">
           <ExternalLink size={18} aria-hidden />
           {t('listingDetail.originalListing')}
         </OriginalLink>
+        <Section>
+          <SectionTitle>{t('listingDetail.nearby')}</SectionTitle>
+          {!hasNearby ? (
+            <Description>{t('listingDetail.noNearby')}</Description>
+          ) : (
+            <>
+              {visibleNearby.map((object, index) => (
+                <NearbyCard key={object.category + '-' + object.name + '-' + index}>
+                  <strong>{nearbyName(object, t)}</strong>
+                  {object.routes.map((route, routeIndex) => (
+                    <Description key={route.mode + '-' + routeIndex}>
+                      {t('listingDetail.modes.' + route.mode)} · {routeSummary(route, t)}
+                    </Description>
+                  ))}
+                </NearbyCard>
+              ))}
+              {hasHiddenNearby && (
+                <ShowMoreButton
+                  onClick={() => setNearbyExpanded((v) => !v)}
+                  aria-expanded={nearbyExpanded}
+                  title={nearbyExpanded ? t('listingDetail.showLess') : t('listingDetail.showMore')}
+                >
+                  {nearbyExpanded ? t('listingDetail.showLess') : t('listingDetail.showMore')}
+                  <ChevronIcon size={18} aria-hidden $expanded={nearbyExpanded} />
+                </ShowMoreButton>
+              )}
+            </>
+          )}
+        </Section>
       </Main>
     </Page>
   );

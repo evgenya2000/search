@@ -17,7 +17,6 @@ const Content = styled.div<{ $isSidebarCollapsed: boolean }>`
   flex: 1;
   min-width: 0;
   margin-left: ${({ $isSidebarCollapsed }) => ($isSidebarCollapsed ? '4rem' : '260px')};
-  overflow-y: auto;
   transition: margin-left 200ms ease;
   @media (max-width: 768px) { margin-left: 0; }
 `;
@@ -30,7 +29,11 @@ export function ChatPage() {
     <Page>
       <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((value) => !value)} />
       <Content $isSidebarCollapsed={isSidebarCollapsed}>
-        <ChatPanel onSend={search.sendMessage} isTyping={search.isSearching} />
+        <ChatPanel
+          onSend={search.sendMessage}
+          isTyping={search.isSearching}
+          scrollToMessageId={search.scrollToMessageId}
+        />
         <ListingsGrid
           items={search.searchResult?.items ?? []}
           total={search.searchResult?.total ?? 0}

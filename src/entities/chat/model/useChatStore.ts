@@ -3,7 +3,7 @@ import type { Message } from './types';
 
 interface ChatState {
   messages: Message[];
-  addMessage: (message: Omit<Message, 'id' | 'createdAt'>) => void;
+  addMessage: (message: Omit<Message, 'id' | 'createdAt'>) => string;
 }
 
 function generateId(): string {
@@ -12,8 +12,9 @@ function generateId(): string {
 
 export const useChatStore = create<ChatState>((set) => ({
   messages: [],
-  addMessage: (message) =>
-    set((state) => ({
-      messages: [...state.messages, { ...message, id: generateId(), createdAt: new Date() }],
-    })),
+  addMessage: (message) => {
+    const newMessage = { ...message, id: generateId(), createdAt: new Date() };
+    set((state) => ({ messages: [...state.messages, newMessage] }));
+    return newMessage.id;
+  },
 }));

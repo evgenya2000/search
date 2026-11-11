@@ -15,7 +15,7 @@ interface ListingsResultsProps {
 const Wrapper = styled.section`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
   padding: 1rem;
 `;
 const Title = styled.h2`
@@ -28,10 +28,10 @@ const Grid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 `;
-const EmptyState = styled.p`
+const EmptyState = styled.p<{ $spinner?: boolean }>`
   color: ${({ theme }) => theme.colors.muted};
-  text-align: center;
-  padding: 2rem 0;
+  text-align: ${({ $spinner }) => ($spinner ? 'center' : 'start')};;
+  padding: 0;
 `;
 
 export function ListingsResults({ items, total, isLoading, hasSearched, error }: ListingsResultsProps) {
@@ -42,7 +42,7 @@ export function ListingsResults({ items, total, isLoading, hasSearched, error }:
     <Wrapper aria-live="polite">
       <Title>{t('listings.title')}</Title>
       {isLoading ? (
-        <EmptyState><Spinner label={t('chat.loading')} /></EmptyState>
+        <EmptyState $spinner={true}><Spinner label={t('chat.loading')} /></EmptyState>
       ) : error ? (
         <EmptyState role="alert">{error}</EmptyState>
       ) : items.length === 0 ? (
