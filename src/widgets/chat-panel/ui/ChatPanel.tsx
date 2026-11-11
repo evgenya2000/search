@@ -48,12 +48,12 @@ const Bubble = styled.div<{ $role: Message['role'] }>`
   align-items: flex-start;
   gap: 0.625rem;
   max-width: 85%;
-  padding: 0.875rem 1rem;
+  padding: ${({ $role }) =>
+    $role === 'user' ? '0.875rem 1rem' : '0.875rem 0'}; ;
   border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ $role, theme }) =>
-    $role === 'user' ? theme.colors.primary : theme.colors.surface};
+    $role === 'user' ? theme.colors.primary : 'none'};
   color: ${({ $role, theme }) => ($role === 'user' ? '#ffffff' : theme.colors.text)};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 const Avatar = styled.div`
   display: flex;
