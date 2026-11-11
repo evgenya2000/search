@@ -1,8 +1,8 @@
-# Land Plot Search
+# Поиск земельных участков
 
-Single-page application for searching land plots by submitting JSON filters through a chat interface.
+Одностраничное приложение для поиска земельных участков путём отправки JSON-фильтров через чат-интерфейс.
 
-## Stack
+## Стек
 
 - React 18 + TypeScript
 - Vite
@@ -12,29 +12,29 @@ Single-page application for searching land plots by submitting JSON filters thro
 - zustand
 - react-hook-form + zod
 - lucide-react
-- motion (installed, ready for animations)
+- motion (установлен, готов к использованию для анимаций)
 
-## Architecture
+## Архитектура
 
-The project follows Feature-Sliced Design v2.1 with six layers (no `processes`):
+Проект следует методологии Feature-Sliced Design v2.1 с шестью слоями (без `processes`):
 
 ```
 app → pages → widgets → features → entities → shared
 ```
 
-- Top-down imports only.
-- Slices expose public API via `index.ts`.
-- Segments: `ui`, `model`, `lib`, `api`, `config`.
-- `app` and `shared` are layer-level slices without sub-slices.
-- `pages` are thin and compose widgets.
+- Только импорты сверху вниз.
+- Слайсы предоставляют публичный API через `index.ts`.
+- Сегменты: `ui`, `model`, `lib`, `api`, `config`.
+- `app` и `shared` — это слайсы уровня слоя без под-слайсов.
+- `pages` тонкие и композируют виджеты.
 
-## Project structure
+## Структура проекта
 
 ```
 search/
 ├── public/
 ├── src/
-│   ├── app/                 # providers, styles, routes, App, main
+│   ├── app/                 # провайдеры, стили, маршруты, App, main
 │   ├── pages/               # login, chat
 │   ├── widgets/             # sidebar, chat-panel, listings-grid
 │   ├── features/            # auth, send-message, show-results
@@ -48,32 +48,31 @@ search/
 └── .prettierrc
 ```
 
-## Available scripts
+## Доступные скрипты
 
 ```bash
-npm install      # install dependencies
-npm run dev      # start Vite dev server
-npm run build    # production build
-npm run preview  # preview production build
-npm run lint     # run ESLint
+npm install      # установить зависимости
+npm run dev      # запустить Vite dev-сервер
+npm run build    # production-сборка
+npm run preview  # предпросмотр production-сборки
+npm run lint     # запустить ESLint
 ```
 
-## Getting started
+## Начало работы
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173/search/ in the browser.
+Откройте http://localhost:5173/search/ в браузере.
 
-Use any email and a password of at least 6 characters to sign in.
+Используйте любой email и пароль длиной не менее 6 символов для входа.
 
+## API и Docker
 
-## API and Docker
+Чат принимает полное JSON-тело для POST /api/search. Например, вставьте объект с полем `filter` и необязательными полями `limit`, `offset` и `matches_limit`. Тело пересылается в land-index, а ответ отображается в виде карточек объявлений.
 
-The chat accepts a complete JSON body for POST /api/search. For example, paste an object with a filter and optional limit, offset, and matches_limit fields. The body is forwarded to land-index and the response is displayed as listing cards.
+Для локальной разработки запустите land-index на порту 8002, запустите BFF на порту 3000, затем выполните `npm run dev`. Vite проксирует запросы `/api` в NestJS.
 
-For local development, run land-index on port 8002, start the BFF on port 3000, then run npm run dev. Vite proxies /api requests to NestJS.
-
-For Docker, first start the unchanged land-index stack from its project directory with docker compose up --build -d. Then, from this project directory, run docker compose up --build. The frontend opens at http://localhost:8080/search/ and the BFF at http://localhost:3000. Compose expects the Docker network land-index_default, created by the existing land-index Compose project.
+Для Docker сначала запустите неизменённый стек land-index из его каталога проекта командой `docker compose up --build -d`. Затем из каталога текущего проекта выполните `docker compose up --build`. Фронтенд откроется по адресу http://localhost:8080/search/, а BFF — по адресу http://localhost:3000. Compose ожидает наличие Docker-сети `land-index_default`, созданной существующим Compose-проектом land-index.
