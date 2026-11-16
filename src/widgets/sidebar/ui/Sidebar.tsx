@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { LogOut, Menu, MessageSquare, PanelLeftClose } from 'lucide-react';
-import { Button, LanguageSelector } from '@/shared/ui';
+import {
+  LogOut,
+  Menu,
+  MessageSquare,
+  MoreVertical,
+  PanelLeftClose,
+  Settings,
+} from 'lucide-react';
+import { Button } from '@/shared/ui';
 import { useAuthStore } from '@/entities/session';
 import { useI18n } from '@/shared/lib/i18n';
+import { SettingsModal } from '@/features/settings';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -188,24 +196,107 @@ const Footer = styled.div`
   gap: 0.5rem;
 `;
 
-const LogoutButton = styled(Button)<{ $isCollapsed: boolean }>`
-  overflow: hidden;
-  white-space: nowrap;
-  ${({ $isCollapsed }) => ($isCollapsed ? 'justify-content: center; gap: 0;' : '')}
-  transition: gap 200ms ease;
+/* ---------- User menu ---------- */
+
+const MenuWrapper = styled.div`
+  position: relative;
+`;
+
+const Dropdown = styled.div<{ $open: boolean }>`
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  display: ${({ $open }) => ($open ? 'flex' : 'none')};
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 200px;
+  padding: 0.25rem;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+  z-index: 10;
 
   @media (max-width: 768px) {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 0.5rem;
+    right: 0;
+    min-width: 0;
   }
 `;
 
-const LogoutText = styled.span<{ $isCollapsed: boolean }>`
+const MenuItem = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.input};
+  }
+`;
+
+const UserButton = styled.button<{ $isCollapsed: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: ${({ $isCollapsed }) => ($isCollapsed ? 'center' : 'flex-start')};
+  gap: ${({ $isCollapsed }) => ($isCollapsed ? '0' : '0.5rem')};
+  width: 100%;
+  padding: ${({ $isCollapsed }) => ($isCollapsed ? '0.25rem' : '0.5rem')};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme }) => theme.colors.input};
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms ease, gap 200ms ease, padding 200ms ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.border};
+  }
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+`;
+
+const Avatar = styled.span<{ $size: number }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: ${({ $size }) => `${$size}px`};
+  height: ${({ $size }) => `${$size}px`};
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: #fff;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 600;
   overflow: hidden;
-  white-space: nowrap;
+
+  & > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const UserInfo = styled.span<{ $isCollapsed: boolean }>`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
   max-width: ${({ $isCollapsed }) => ($isCollapsed ? '0' : '100%')};
   opacity: ${({ $isCollapsed }) => ($isCollapsed ? 0 : 1)};
+  overflow: hidden;
   transition: opacity 150ms ease, max-width 200ms ease;
 
   @media (max-width: 768px) {
@@ -214,10 +305,41 @@ const LogoutText = styled.span<{ $isCollapsed: boolean }>`
   }
 `;
 
+const UserName = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const UserEmail = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  opacity: 0.65;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const MoreIcon = styled.span<{ $isCollapsed: boolean }>`
+  display: ${({ $isCollapsed }) => ($isCollapsed ? 'none' : 'inline-flex')};
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    display: inline-flex;
+  }
+`;
+
+/* ---------- Component ---------- */
+
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+  const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const { t } = useI18n();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const closeMobile = () => setIsMobileOpen(false);
 
@@ -248,6 +370,49 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
+  const displayName = user?.name ?? user?.email ?? 'Пользователь';
+  const initials =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?';
+  const avatarUrl = user?.avatarUrl;
+
+  const handleSettings = () => {
+    setIsMenuOpen(false);
+    closeMobile();
+    setIsSettingsOpen(true);
+  };
+
+  const handleLogout = () => {
+    setIsMenuOpen(false);
+    closeMobile();
+    logout();
+  };
+
   return (
     <>
       <MobileMenuButton
@@ -269,9 +434,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         $isMobileOpen={isMobileOpen}
       >
         <Header $isCollapsed={isCollapsed}>
-          <Logo $isCollapsed={isCollapsed}>
-            {t('app.name')}
-          </Logo>
+          <Logo $isCollapsed={isCollapsed}>{t('app.name')}</Logo>
           <ToggleButton
             variant="ghost"
             size="sm"
@@ -283,6 +446,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             </ToggleIcon>
           </ToggleButton>
         </Header>
+
         <Nav>
           <NavItem $isCollapsed={isCollapsed} onClick={closeMobile}>
             <IconBox $size={18}>
@@ -291,23 +455,46 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <NavLabel $isCollapsed={isCollapsed}>{t('sidebar.chat')}</NavLabel>
           </NavItem>
         </Nav>
+
         <Footer>
-          <LanguageSelector isCollapsed={isCollapsed} />
-          <LogoutButton
-            variant="ghost"
-            $isCollapsed={isCollapsed}
-            onClick={() => {
-              closeMobile();
-              logout();
-            }}
-          >
-            <IconBox $size={18}>
-              <LogOut />
-            </IconBox>
-            <LogoutText $isCollapsed={isCollapsed}>{t('sidebar.logout')}</LogoutText>
-          </LogoutButton>
+          <MenuWrapper ref={menuRef}>
+            <Dropdown $open={isMenuOpen} role="menu">
+              <MenuItem type="button" role="menuitem" onClick={handleSettings}>
+                <Settings size={18} />
+                <span>{t('sidebar.settings')}</span>
+              </MenuItem>
+              <MenuItem type="button" role="menuitem" onClick={handleLogout}>
+                <LogOut size={18} />
+                <span>{t('sidebar.logout')}</span>
+              </MenuItem>
+            </Dropdown>
+
+            <UserButton
+              type="button"
+              $isCollapsed={isCollapsed}
+              onClick={() => setIsMenuOpen((value) => !value)}
+              aria-haspopup="menu"
+              aria-expanded={isMenuOpen}
+              aria-label={t('sidebar.userMenu')}
+            >
+              <Avatar $size={32}>
+                {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
+              </Avatar>
+              <UserInfo $isCollapsed={isCollapsed}>
+                <UserName>{displayName}</UserName>
+                {user?.email ? <UserEmail>{user.email}</UserEmail> : null}
+              </UserInfo>
+              <MoreIcon $isCollapsed={isCollapsed}>
+                <MoreVertical size={18} />
+              </MoreIcon>
+            </UserButton>
+          </MenuWrapper>
         </Footer>
       </Aside>
+      <SettingsModal
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </>
   );
 }

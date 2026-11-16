@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Bot, ChevronDown, User } from 'lucide-react';
 import { useChatStore, type Message } from '@/entities/chat';
 import { MessageInput } from '@/features/send-message';
-import { Spinner } from '@/shared/ui';
+import { Spinner, BotAvatar } from '@/shared/ui';
 import { useI18n } from '@/shared/lib';
 
 interface ChatPanelProps {
@@ -172,7 +172,9 @@ function ChatMessageBubble({ message, scrollToStart }: ChatMessageBubbleProps) {
   return (
     <MessageRow ref={rowRef} $role={message.role}>
       <Bubble $role={message.role}>
-        <Avatar aria-hidden>{message.role === 'user' ? <User size={14} /> : <Bot size={14} />}</Avatar>
+        <Avatar aria-hidden>
+          {message.role === 'user' ? <User size={14} /> : <BotAvatar size={20} />}
+        </Avatar>
         <MessageBody ref={contentRef}>
           <Text id={'message-text-' + message.id} $expanded={isExpanded}>{message.text}</Text>
           <MeasureText ref={measureRef} aria-hidden>{message.text}</MeasureText>
@@ -213,7 +215,7 @@ export function ChatPanel({ onSend, isTyping, scrollToMessageId }: ChatPanelProp
     <Panel>
       <Messages ref={messagesRef}>
         {messages.length === 0 ? (
-          <EmptyState><Bot size={48} /><p>{t('chat.emptyState')}</p></EmptyState>
+          <EmptyState><BotAvatar size={80} /><p>{t('chat.emptyState')}</p></EmptyState>
         ) : messages.map((message) => (
           <ChatMessageBubble
             key={message.id}
@@ -222,7 +224,7 @@ export function ChatPanel({ onSend, isTyping, scrollToMessageId }: ChatPanelProp
           />
         ))}
         {isTyping && (
-          <TypingRow><Bubble $role="assistant"><Avatar aria-hidden><Bot size={14} /></Avatar><Spinner size="sm" label={t('chat.loading')} /></Bubble></TypingRow>
+          <TypingRow><Bubble $role="assistant"><Avatar aria-hidden><BotAvatar size={20} /></Avatar><Spinner size="sm" label={t('chat.loading')} /></Bubble></TypingRow>
         )}
       </Messages>
       <MessageInput onSend={onSend} isLoading={isTyping} />

@@ -38,6 +38,7 @@ export const translations: Record<Language, TranslationTree> = {
       collapse: 'Collapse sidebar',
       openMenu: 'Open menu',
       closeMenu: 'Close menu',
+      settings: 'Settings'
     },
     chat: {
       emptyState: 'Start a conversation to find the best land plots.',
@@ -120,6 +121,7 @@ export const translations: Record<Language, TranslationTree> = {
       collapse: 'Свернуть боковую панель',
       openMenu: 'Открыть меню',
       closeMenu: 'Закрыть меню',
+      settings: 'Настройки'
     },
     chat: {
       emptyState: 'Начните разговор, чтобы найти лучшие земельные участки.',
