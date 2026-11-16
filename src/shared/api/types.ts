@@ -30,6 +30,8 @@ export interface Listing {
   id: number;
   title: string;
   link: string;
+  imageUrlSmall: string | null;
+  imageUrlLarge: string | null;
   location: string;
   latitude: number;
   longitude: number;

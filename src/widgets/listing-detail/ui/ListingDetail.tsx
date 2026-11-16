@@ -44,6 +44,15 @@ const Main = styled.main`
   flex-direction: column;
   gap: 1.5rem;
 `;
+const DetailImage = styled.img`
+  display: block;
+  width: 100%;
+  max-height: 34rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background: ${({ theme }) => theme.colors.input};
+`;
 const Title = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes['2xl']};
   font-weight: 700;
@@ -180,6 +189,7 @@ export function ListingDetail() {
         <HeaderTitle>{listing.title}</HeaderTitle>
       </Header>
       <Main>
+        {listing.imageUrlLarge && <DetailImage src={listing.imageUrlLarge} alt={listing.title} />}
         <div>
           <Title>{listing.title}</Title>
           <MetaRow>

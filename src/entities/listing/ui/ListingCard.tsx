@@ -14,7 +14,8 @@ const Card = styled(Link)`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: 0;
+  overflow: hidden;
   background-color: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -29,10 +30,19 @@ const Card = styled(Link)`
   }
 `;
 
+const Image = styled.img`
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: ${({ theme }) => theme.colors.input};
+`;
+
 const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 1rem;
 `;
 
 const Title = styled.h3`
@@ -96,9 +106,9 @@ export function ListingCard({ listing, className }: ListingCardProps) {
     : listing.withHouse
       ? t('listings.withHouse')
       : t('listings.withoutHouse');
-
   return (
     <Card to={routes.listing.replace(':id', String(listing.id))} className={cn(className)}>
+      {listing.imageUrlSmall && <Image src={listing.imageUrlSmall} alt={listing.title} loading="lazy" />}
       <Content>
         <Title>{listing.title}</Title>
         <Description>{houseLabel}</Description>
