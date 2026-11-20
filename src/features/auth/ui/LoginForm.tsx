@@ -54,8 +54,8 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await loginMutation.mutateAsync(data);
-      setAuthenticated();
+      const response = await loginMutation.mutateAsync(data);
+      setAuthenticated(response.user);
       navigate(routes.chat, { replace: true });
     } catch {
       // The error is displayed below so the user can retry.

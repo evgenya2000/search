@@ -56,13 +56,17 @@ export interface ListingDetail extends Omit<Listing,
 }
 
 export interface SearchRequest {
-  filter: Record<string, unknown>;
+  query: string;
   limit?: number;
   offset?: number;
-  matches_limit?: number;
 }
 
+export type SearchResponseStatus = 'completed' | 'clarification_required';
+
 export interface SearchResponse {
+  status: SearchResponseStatus;
+  answer: string;
+  filter: Record<string, unknown> | null;
   total: number;
   limit: number;
   offset: number;

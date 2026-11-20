@@ -2,14 +2,19 @@ services:
   land-search-bff:
     build:
       context: ../land-search-bff
+    env_file:
+      - ../land-search-bff/.env
     environment:
       PORT: 3000
       LAND_INDEX_URL: http://api:8002
+      AGENT_SEARCHER_URL: http://agent-searcher:8005
+      AGENT_SEARCHER_TIMEOUT_MS: 180000
     ports:
       - "127.0.0.1:3000:3000"
     networks:
       - default
       - land-index
+      - agent-searcher
 
   frontend:
     build:
@@ -28,3 +33,6 @@ networks:
   land-index:
     external: true
     name: land-index_default
+  agent-searcher:
+    external: true
+    name: agent-searcher_default

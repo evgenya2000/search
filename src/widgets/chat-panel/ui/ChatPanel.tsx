@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { Bot, ChevronDown, User } from 'lucide-react';
+import { ChevronDown, User } from 'lucide-react';
 import { useChatStore, type Message } from '@/entities/chat';
 import { MessageInput } from '@/features/send-message';
 import { Spinner, BotAvatar } from '@/shared/ui';

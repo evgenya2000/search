@@ -30,7 +30,7 @@ const TextArea = styled.textarea`
   border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.input};
   color: ${({ theme }) => theme.colors.text};
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   resize: none;
 
@@ -80,6 +80,7 @@ export function MessageInput({ onSend, isLoading }: MessageInputProps) {
           placeholder={t('chat.placeholder')}
           aria-label={t('chat.placeholder')}
           rows={3}
+          maxLength={8000}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />

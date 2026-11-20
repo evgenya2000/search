@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { lazy, Suspense } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, MapPin, Maximize, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Maximize, ExternalLink } from 'lucide-react';
 import { Button, Spinner } from '@/shared/ui';
 import { formatPrice, useI18n } from '@/shared/lib';
 import { routes } from '@/shared/config';
-import type { NearbyObject, ListingRoute } from '@/shared/api';
 import { useListing } from '../model/useListing';
+
+const ListingsMap = lazy(() => import('@/features/show-results/ui/ListingsMap').then((module) => ({ default: module.ListingsMap })));
 
 const Page = styled.div`
   min-height: 100vh;
@@ -94,12 +95,6 @@ const Description = styled.p`
   line-height: 1.6;
   color: ${({ theme }) => theme.colors.text};
 `;
-const NearbyCard = styled.article`
-  padding: 1rem;
-  background-color: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.md};
-`;
 const OriginalLink = styled.a`
   display: inline-flex;
   align-items: center;
@@ -107,16 +102,15 @@ const OriginalLink = styled.a`
   color: ${({ theme }) => theme.colors.primary};
   font-weight: 600;
 `;
-const ShowMoreButton = styled(Button)`
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-const ChevronIcon = styled(ChevronDown)<{ $expanded: boolean }>`
-  transition: transform 0.2s ease;
-  transform: rotate(${({ $expanded }) => ($expanded ? 180 : 0)}deg);
-  margin: 2px -5px 0 0;
+const MapLoading = styled.div`
+  display: grid;
+  place-items: center;
+  height: clamp(18rem, 42vh, 32rem);
+  min-height: 280px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background: ${({ theme }) => theme.colors.input};
+  color: ${({ theme }) => theme.colors.muted};
 `;
 const EmptyState = styled.div`
   display: flex;
@@ -130,24 +124,11 @@ const EmptyState = styled.div`
   color: ${({ theme }) => theme.colors.muted};
 `;
 
-const NEARBY_PREVIEW_COUNT = 2;
-
-function nearbyName(object: NearbyObject, t: (key: string) => string): string {
-  return object.name ?? t('listingDetail.categories.' + object.category);
-}
-
-function routeSummary(route: ListingRoute, t: (key: string, values?: Record<string, string>) => string): string {
-  const minutes = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(route.durationSeconds / 60);
-  const distance = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(route.distanceMeters / 1000);
-  return t('listingDetail.routeSummary', { minutes, distance });
-}
-
 export function ListingDetail() {
   const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { listing, isLoading, error } = useListing(id);
-  const [nearbyExpanded, setNearbyExpanded] = useState(false);
 
   if (isLoading) return <EmptyState><Spinner label={t('listingDetail.loading')} /><span>{t('listingDetail.loading')}</span></EmptyState>;
 
@@ -174,12 +155,6 @@ export function ListingDetail() {
     ? t('listings.houseUnknown')
     : listing.withHouse ? t('listings.withHouse') : t('listings.withoutHouse');
 
-  const hasNearby = listing.nearbyObjects.length > 0;
-  const hasHiddenNearby = listing.nearbyObjects.length > NEARBY_PREVIEW_COUNT;
-  const visibleNearby = nearbyExpanded
-    ? listing.nearbyObjects
-    : listing.nearbyObjects.slice(0, NEARBY_PREVIEW_COUNT);
-
   return (
     <Page>
       <Header>
@@ -198,45 +173,23 @@ export function ListingDetail() {
             <MetaItem>{houseLabel}</MetaItem>
           </MetaRow>
           <Price>{listing.priceRub === null ? t('listings.priceUnknown') : formatPrice(listing.priceRub)}</Price>
+          <OriginalLink href={listing.link} target="_blank" rel="noreferrer">
+            <ExternalLink size={18} aria-hidden />
+            {t('listingDetail.originalListing')}
+          </OriginalLink>
         </div>
+
         {listing.description && (
           <Section>
             <SectionTitle>{t('listingDetail.description')}</SectionTitle>
             <Description>{listing.description}</Description>
           </Section>
         )}
-        <OriginalLink href={listing.link} target="_blank" rel="noreferrer">
-          <ExternalLink size={18} aria-hidden />
-          {t('listingDetail.originalListing')}
-        </OriginalLink>
         <Section>
-          <SectionTitle>{t('listingDetail.nearby')}</SectionTitle>
-          {!hasNearby ? (
-            <Description>{t('listingDetail.noNearby')}</Description>
-          ) : (
-            <>
-              {visibleNearby.map((object, index) => (
-                <NearbyCard key={object.category + '-' + object.name + '-' + index}>
-                  <strong>{nearbyName(object, t)}</strong>
-                  {object.routes.map((route, routeIndex) => (
-                    <Description key={route.mode + '-' + routeIndex}>
-                      {t('listingDetail.modes.' + route.mode)} · {routeSummary(route, t)}
-                    </Description>
-                  ))}
-                </NearbyCard>
-              ))}
-              {hasHiddenNearby && (
-                <ShowMoreButton
-                  onClick={() => setNearbyExpanded((v) => !v)}
-                  aria-expanded={nearbyExpanded}
-                  title={nearbyExpanded ? t('listingDetail.showLess') : t('listingDetail.showMore')}
-                >
-                  {nearbyExpanded ? t('listingDetail.showLess') : t('listingDetail.showMore')}
-                  <ChevronIcon size={18} aria-hidden $expanded={nearbyExpanded} />
-                </ShowMoreButton>
-              )}
-            </>
-          )}
+          <SectionTitle>{t('listingDetail.map')}</SectionTitle>
+          <Suspense fallback={<MapLoading role="status">{t('chat.loading')}</MapLoading>}>
+            <ListingsMap items={[listing]} showDetailsLink={false} />
+          </Suspense>
         </Section>
       </Main>
     </Page>

@@ -395,7 +395,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     displayName
       .split(/\s+/)
       .filter(Boolean)
-      .map((part) => part[0])
+      .map((part: string) => part[0])
       .slice(0, 2)
       .join('')
       .toUpperCase() || '?';

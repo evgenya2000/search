@@ -1,9 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+}
+
 interface AuthState {
   isAuth: boolean;
-  login: () => void;
+  user: AuthUser | null;
+  login: (user: AuthUser) => void;
   logout: () => void;
 }
 
@@ -15,8 +23,9 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       isAuth: false,
-      login: () => set({ isAuth: true }),
-      logout: () => set({ isAuth: false }),
+      user: null,
+      login: (user) => set({ isAuth: true, user }),
+      logout: () => set({ isAuth: false, user: null }),
     }),
     {
       name: 'land-search-auth',

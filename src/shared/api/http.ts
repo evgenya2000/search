@@ -11,10 +11,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function responseMessage(value: unknown): string | null {
   if (!isRecord(value)) return null;
-  const message = value.message ?? value.detail;
+
+  const detail = value.detail;
+  const detailRecord = isRecord(detail) ? detail : null;
+  const message = detailRecord?.message ?? (typeof detail === 'string' ? detail : value.message);
+
   if (typeof message === 'string') return message;
   if (Array.isArray(message)) {
-    return message.filter((part): part is string => typeof part === 'string').join('. ');
+    return message
+      .map((part) => {
+        if (typeof part === 'string') return part;
+        return isRecord(part) && typeof part.msg === 'string' ? part.msg : null;
+      })
+      .filter((part): part is string => part !== null)
+      .join('. ');
   }
   return null;
 }
